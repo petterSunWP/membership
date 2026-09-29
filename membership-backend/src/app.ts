@@ -16,13 +16,14 @@ import staffAuthRoutes from './routes/staff-auth.routes.js';
 dotenv.config();
 
 const app = express();
+
 const allowedOrigins = [
   process.env.CUSTOMER_WEB_URL,
   process.env.STORE_WEB_URL,
   process.env.CUSTOMER_LAN_URL,
   process.env.STORE_LAN_URL,
 ].filter(Boolean) as string[];
-
+app.set('trust proxy', 1);
 app.use(
   cors({
     origin: allowedOrigins,
@@ -31,7 +32,6 @@ app.use(
 
 app.use(express.json());
 
-app.use(express.json());
 app.use('/api/staff/auth',staffAuthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/referrals', referralRoutes);

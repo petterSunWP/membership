@@ -1,4 +1,7 @@
 import { db } from '../config/db.js';
+import {
+  calculateReferralReward,
+} from '../rules/referral-rules.js';
 
 interface OrderItemInput {
   productId: number;
@@ -268,9 +271,15 @@ export async function createOrder(input: CreateOrderInput) {
     if (referralRows.length > 0) {
       const referral = referralRows[0];
 
-      referralReward = Number(
-        process.env.REFERRAL_PURCHASE_POINTS || 1
+      const totalQuantity = orderItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0
       );
+      referralReward =
+        calculateReferralReward(
+          referral.status,
+          totalQuantity
+        );
 
       // 8. 给推荐人积分
       if (referralReward > 0) {

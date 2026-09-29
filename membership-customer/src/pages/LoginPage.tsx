@@ -6,6 +6,8 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<'email' | 'code'>('email');
+  const [mode, setMode] =
+  useState<'login' | 'activation'>('login');
 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -40,10 +42,46 @@ function LoginPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || 'Failed to send login code'
-        );
+  if (result.code === 'EMAIL_NOT_VERIFIED') {
+    const resendResponse = await fetch(
+      `${API_BASE_URL}/api/auth/resend-verification-code`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+        }),
       }
+    );
+
+    const resendResult = await resendResponse.json();
+
+    if (!resendResponse.ok) {
+      throw new Error(
+        resendResult.message ||
+          'Failed to send verification code'
+      );
+    }
+
+    setMode('activation');
+    setStep('code');
+    setMessage(
+      'Your membership was not verified. A new verification code has been sent.'
+    );
+
+    return;
+  }
+
+  throw new Error(
+    result.message || 'Failed to send login code'
+  );
+}
+
+  setMode('login');
+  setStep('code');
+  setMessage('Verification code sent.');
 
       setStep('code');
       setMessage('Verification code sent.');
@@ -74,8 +112,13 @@ function LoginPage() {
     setLoading(true);
 
     try {
+      const endpoint =
+      mode === 'activation'
+    ? '/api/auth/verify-email'
+    : '/api/auth/verify-login-code';
+
       const response = await fetch(
-        `${API_BASE_URL}/api/auth/verify-login-code`,
+        `${API_BASE_URL}${endpoint}`,
         {
           method: 'POST',
           headers: {
@@ -119,8 +162,12 @@ function LoginPage() {
     setLoading(true);
 
     try {
+      const endpoint =
+      mode === 'activation'
+        ? '/api/auth/resend-verification-code'
+        : '/api/auth/request-login-code';
       const response = await fetch(
-        `${API_BASE_URL}/api/auth/request-login-code`,
+        `${API_BASE_URL}${endpoint}`,
         {
           method: 'POST',
           headers: {
@@ -277,6 +324,7 @@ function LoginPage() {
                 className="text-button"
                 onClick={() => {
                   setStep('email');
+                  setMode('login');
                   setCode('');
                   setError('');
                   setMessage('');

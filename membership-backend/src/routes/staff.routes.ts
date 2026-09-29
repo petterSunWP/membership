@@ -10,8 +10,12 @@ import {
   getStaffDashboardController,
 } from '../controllers/dashboard.controller.js';
 import {
+  createManualPointAdjustmentController,
+} from '../controllers/manual-point-adjustment.controller.js';
+import {
   requireStaffAuth,
 } from '../middleware/staff-auth.middleware.js';
+
 
 import aiRoutes from './ai.routes.js';
 
@@ -43,6 +47,11 @@ router.get(
 router.get(
   '/dashboard',
   getStaffDashboardController
+);
+
+router.post(
+  '/point-adjustments',
+  createManualPointAdjustmentController
 );
 
 export default router;

@@ -238,26 +238,46 @@ function CustomerProfilePage() {
         </div>
 
         <div className="customer-actions">
-          <button
-            type="button"
-            className="primary-action"
-            onClick={() =>
-              navigate(`/customers/${member.id}/products`)
-            }
-          >
-            Earn Points
-          </button>
+            <button
+                type="button"
+                className="primary-action"
+                onClick={() =>
+                navigate(`/customers/${member.id}/products`)
+                }
+            >
+                Earn Points
+            </button>
 
-          <button
-            type="button"
-            className="secondary-action"
-            onClick={() =>
-            navigate(`/customers/${member.id}/redeem`)
-            }
-          >
-            Redeem Points
-          </button>
-        </div>
+            <button
+                type="button"
+                className="secondary-action"
+                onClick={() =>
+                navigate(`/customers/${member.id}/quick-earn`)
+                }
+            >
+                Quick Add Points
+            </button>
+
+            <button
+                type="button"
+                className="secondary-action"
+                onClick={() =>
+                navigate(`/customers/${member.id}/import-card`)
+                }
+            >
+                Import Physical Card
+            </button>
+
+            <button
+                type="button"
+                className="secondary-action"
+                onClick={() =>
+                navigate(`/customers/${member.id}/redeem`)
+                }
+            >
+                Redeem Points
+            </button>
+            </div>
       </section>
     </div>
   );

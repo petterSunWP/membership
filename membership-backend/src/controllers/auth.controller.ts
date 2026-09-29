@@ -34,6 +34,7 @@ export async function register(
       lastName,
       referralCode,
       marketingEmailOptIn,
+      ipAddress: req.ip,
     });
 
     return res.status(201).json({
@@ -63,6 +64,17 @@ export async function register(
           message: 'Invalid referral code',
         });
       }
+
+      if (
+          error.message === 'OTP_COOLDOWN' ||
+          error.message === 'OTP_DAILY_LIMIT' ||
+          error.message === 'OTP_IP_LIMIT'
+        ) {
+          return res.status(429).json({
+            success: false,
+            message: 'Too many verification requests. Please try again later.',
+          });
+        }
     }
 
     console.error(error);
@@ -159,7 +171,7 @@ export async function resendVerificationCodeController(
       });
     }
 
-    const result = await resendVerificationCode(email);
+    const result = await resendVerificationCode(email, req.ip);
 
     return res.status(200).json({
       success: true,
@@ -185,6 +197,20 @@ export async function resendVerificationCodeController(
         VERIFICATION_EMAIL_SEND_FAILED: {
           status: 500,
           message: 'Failed to send verification email',
+        },
+        OTP_COOLDOWN: {
+          status: 429,
+          message: 'Please wait before requesting another code',
+        },
+
+        OTP_DAILY_LIMIT: {
+          status: 429,
+          message: 'Daily verification email limit reached',
+        },
+
+        OTP_IP_LIMIT: {
+          status: 429,
+          message: 'Too many verification requests. Please try again later',
         },
       };
 
@@ -221,7 +247,7 @@ export async function requestLoginCodeController(
       });
     }
 
-    const result = await requestLoginCode(email);
+    const result = await requestLoginCode(email, req.ip);
 
     return res.status(200).json({
       success: true,
@@ -236,6 +262,13 @@ export async function requestLoginCodeController(
           message: 'Member not found',
         });
       }
+      if (error.message === 'EMAIL_NOT_VERIFIED') {
+          return res.status(403).json({
+            success: false,
+            code: 'EMAIL_NOT_VERIFIED',
+            message: 'Your email has not been verified yet.',
+          });
+        }
 
       if (error.message === 'MEMBER_NOT_ACTIVE') {
         return res.status(400).json({
@@ -243,6 +276,16 @@ export async function requestLoginCodeController(
           message: 'Member is not active',
         });
       }
+      if (
+          error.message === 'OTP_COOLDOWN' ||
+          error.message === 'OTP_DAILY_LIMIT' ||
+          error.message === 'OTP_IP_LIMIT'
+        ) {
+          return res.status(429).json({
+            success: false,
+            message: 'Too many verification requests. Please try again later.',
+          });
+        }
     }
 
     console.error(error);

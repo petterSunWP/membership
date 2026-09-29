@@ -6,6 +6,10 @@ import {
   hashVerificationCode,
 } from '../utils/verification.js';
 import { normalizeNZPhone } from '../utils/phone.js';
+import {
+  checkOtpRateLimit,
+  logOtpEmail,
+} from './otp-rate-limit.service.js';
 import jwt from 'jsonwebtoken';
 
 interface RegisterInput {
@@ -15,6 +19,7 @@ interface RegisterInput {
   lastName?: string;
   referralCode?: string;
   marketingEmailOptIn?: boolean;
+  ipAddress?: string | null;
 }
 
 export async function registerUser(input: RegisterInput) {
@@ -29,6 +34,10 @@ export async function registerUser(input: RegisterInput) {
     await connection.beginTransaction();
 
     email = input.email.trim().toLowerCase();
+    await checkOtpRateLimit({
+      email,
+      ipAddress: input.ipAddress,
+    });
     const phone = normalizeNZPhone(input.phone);
 
     const marketingEmailOptIn =
@@ -179,20 +188,32 @@ export async function registerUser(input: RegisterInput) {
   }
 
   try {
-    await sendVerificationEmail(
-      email!,
-      verificationCode!
-    );
-  } catch (error) {
-    console.error(
-      'User created but verification email failed:',
-      error
-    );
+  await sendVerificationEmail(
+    email!,
+    verificationCode!
+  );
 
-    throw new Error(
-      'VERIFICATION_EMAIL_SEND_FAILED'
-    );
-  }
+  await logOtpEmail({
+    email: email!,
+    ipAddress: input.ipAddress,
+    status: 'SENT',
+  });
+} catch (error) {
+  console.error(
+    'User created but verification email failed:',
+    error
+  );
+
+  await logOtpEmail({
+    email: email!,
+    ipAddress: input.ipAddress,
+    status: 'FAILED',
+  });
+
+  throw new Error(
+    'VERIFICATION_EMAIL_SEND_FAILED'
+  );
+}
 
   return {
     userId: userId!,
@@ -321,8 +342,15 @@ return {
   }
 }
 
-export async function resendVerificationCode(email: string) {
+export async function resendVerificationCode(
+  email: string,
+  ipAddress?: string | null
+) {
   const normalizedEmail = email.trim().toLowerCase();
+  await checkOtpRateLimit({
+  email: normalizedEmail,
+  ipAddress,
+});
 
   const [users]: any = await db.query(
     `
@@ -378,23 +406,45 @@ export async function resendVerificationCode(email: string) {
 
   // 发邮件
   try {
-    await sendVerificationEmail(
-      normalizedEmail,
-      verificationCode
-    );
-  } catch (error) {
-    console.error('Resend verification email failed:', error);
+  await sendVerificationEmail(
+    normalizedEmail,
+    verificationCode
+  );
 
-    throw new Error('VERIFICATION_EMAIL_SEND_FAILED');
-  }
+  await logOtpEmail({
+    email: normalizedEmail,
+    ipAddress,
+    status: 'SENT',
+  });
+} catch (error) {
+  console.error(
+    'Resend verification email failed:',
+    error
+  );
+
+  await logOtpEmail({
+    email: normalizedEmail,
+    ipAddress,
+    status: 'FAILED',
+  });
+
+  throw new Error('VERIFICATION_EMAIL_SEND_FAILED');
+}
 
   return {
     email: normalizedEmail,
   };
 }
 
-export async function requestLoginCode(email: string) {
+export async function requestLoginCode(
+  email: string,
+  ipAddress?: string | null
+) {
   const normalizedEmail = email.trim().toLowerCase();
+  await checkOtpRateLimit({
+  email: normalizedEmail,
+  ipAddress,
+});
 
   const [userRows]: any = await db.query(
     `
@@ -415,9 +465,13 @@ export async function requestLoginCode(email: string) {
 
   const user = userRows[0];
 
+  if (user.status === 'PENDING_EMAIL_VERIFICATION') {
+  throw new Error('EMAIL_NOT_VERIFIED');
+    }
+
   if (user.status !== 'ACTIVE') {
-    throw new Error('MEMBER_NOT_ACTIVE');
-  }
+      throw new Error('MEMBER_NOT_ACTIVE');
+    }
 
   const code = generateVerificationCode();
   const codeHash = hashVerificationCode(code);
@@ -463,12 +517,35 @@ export async function requestLoginCode(email: string) {
   }
 
   if (process.env.EMAIL_MODE === 'development') {
-    console.log(
-      `[LOGIN CODE] ${user.email}: ${code}`
-    );
-  } else {
+  console.log(
+    `[LOGIN CODE] ${user.email}: ${code}`
+  );
+} else {
+  try {
     await sendVerificationEmail(user.email, code);
+
+    await logOtpEmail({
+      email: user.email,
+      ipAddress,
+      status: 'SENT',
+    });
+  } catch (error) {
+    console.error(
+      'Login verification email failed:',
+      error
+    );
+
+    await logOtpEmail({
+      email: user.email,
+      ipAddress,
+      status: 'FAILED',
+    });
+
+    throw new Error(
+      'VERIFICATION_EMAIL_SEND_FAILED'
+    );
   }
+}
 
   return {
     email: user.email,

@@ -18,6 +18,7 @@ import PointsConfirmationPage from './pages/PointsConfirmationPage';
 import RedeemPointsPage from './pages/RedeemPointsPage';
 import OrdersPage from './pages/OrdersPage';
 import RedemptionsPage from './pages/RedemptionsPage';
+import PointAdjustmentPage from './pages/PointAdjustmentPage';
 
 function App() {
   return (
@@ -84,6 +85,19 @@ function App() {
               path="/redemptions"
               element={<RedemptionsPage />}
             />
+            <Route
+                path="/customers/:userId/quick-earn"
+                element={
+                  <PointAdjustmentPage />
+                }
+              />
+
+              <Route
+                path="/customers/:userId/import-card"
+                element={
+                  <PointAdjustmentPage />
+                }
+              />
           </Route>
         </Route>
 

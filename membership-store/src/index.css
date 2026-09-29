@@ -1720,3 +1720,58 @@ button {
   width: 100%;
   margin-top: 4px;
 }
+
+.adjustment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.adjustment-field label {
+  font-weight: 600;
+}
+
+.adjustment-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.adjustment-helper {
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.adjustment-preview {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 20px 24px;
+  max-width: 420px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.adjustment-preview span {
+  display: block;
+  color: #667085;
+  font-weight: 600;
+}
+
+.adjustment-preview strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.adjustment-preview small {
+  display: block;
+  margin-top: 8px;
+  color: #667085;
+}
