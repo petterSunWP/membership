@@ -123,9 +123,13 @@ const referralLink = profile
     )}`
   : '';
 
+  const isWeChat =
+  /MicroMessenger/i.test(navigator.userAgent);
+
   const canShare =
+  !isWeChat &&
   typeof navigator.share === 'function' &&
-  window.isSecureContext;
+  window.isSecureContext; 
 
   async function handleCopyReferralLink() {
   if (!referralLink) return;
@@ -309,6 +313,11 @@ function formatDate(value: string) {
                 </button>
               )}
             </div>
+            {isWeChat && (
+                <p className="share-hint">
+                  Copy the link and send it to your friend in WeChat.
+                </p>
+              )}
           </div>
         </section>
 
