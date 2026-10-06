@@ -321,7 +321,7 @@ export async function verifyEmail(email: string, code: string) {
   },
   process.env.JWT_SECRET!,
   {
-    expiresIn: '7d',
+    expiresIn: '365d',
   }
 );
 
@@ -622,7 +622,7 @@ export async function verifyLoginCode(
   },
   process.env.JWT_SECRET!,
   {
-    expiresIn: '7d',
+    expiresIn: '365d',
   }
 );
 

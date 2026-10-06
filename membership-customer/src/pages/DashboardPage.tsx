@@ -60,6 +60,8 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showPointsDetails, setShowPointsDetails] =
+  useState(false);
 
   useEffect(() => {
   async function loadProfile() {
@@ -222,6 +224,49 @@ const {
   pointHistory
 } = profile;
 
+const purchasePoints = pointHistory
+  .filter(
+    (item) =>
+      item.points > 0 &&
+      (
+        item.pointType === 'PURCHASE' ||
+        item.pointType === 'MANUAL_ADJUSTMENT'
+      )
+  )
+  .reduce(
+    (total, item) => total + Number(item.points),
+    0
+  );
+
+const referralPoints = pointHistory
+  .filter(
+    (item) =>
+      item.points > 0 &&
+      item.pointType === 'REFERRAL'
+  )
+  .reduce(
+    (total, item) => total + Number(item.points),
+    0
+  );
+
+  const redeemedPoints = pointHistory
+  .filter(
+    (item) =>
+      item.pointType === 'REDEMPTION' &&
+      item.points < 0
+  )
+  .reduce(
+    (total, item) =>
+      total + Math.abs(Number(item.points)),
+    0
+  );
+
+const sortedPointHistory = [...pointHistory].sort(
+  (a, b) =>
+    new Date(b.createdAt).getTime() -
+    new Date(a.createdAt).getTime()
+);
+
 
 function getPointHistoryTitle(pointType: string) {
   switch (pointType) {
@@ -275,15 +320,54 @@ function formatDate(value: string) {
         </header>
 
         <section className="dashboard-grid">
-          <div className="points-card">
-            <span>Available Points</span>
+          <div className="tea-points-card">
+              <div className="tea-points-header">
+                <span>Tea Points</span>
 
-            <strong>
-              {member.availablePoints.toLocaleString()}
-            </strong>
+                <button
+                  type="button"
+                  className="points-details-button"
+                  onClick={() => setShowPointsDetails(true)}
+                >
+                  Points Details
+                </button>
+              </div>
 
-            <small>points</small>
-          </div>
+              <div className="tea-points-balance">
+                <strong>
+                  {member.availablePoints.toLocaleString()}
+                </strong>
+
+                <small>points available</small>
+              </div>
+
+              <div className="tea-points-breakdown">
+  <div className="tea-points-breakdown-item">
+    <span>Purchase</span>
+    <strong>
+      {purchasePoints.toLocaleString()}
+    </strong>
+  </div>
+
+  <div className="tea-points-breakdown-divider" />
+
+  <div className="tea-points-breakdown-item">
+    <span>Referral</span>
+    <strong>
+      {referralPoints.toLocaleString()}
+    </strong>
+  </div>
+
+  <div className="tea-points-breakdown-divider" />
+
+  <div className="tea-points-breakdown-item">
+    <span>Used</span>
+    <strong>
+      {redeemedPoints.toLocaleString()}
+    </strong>
+  </div>
+</div>
+            </div>
 
           <div className="invite-card">
             <span>Invite Friends</span>
@@ -440,55 +524,75 @@ function formatDate(value: string) {
     </div>
   )}
 </section>
-<section className="dashboard-section">
-  <div className="section-heading">
-    <div>
-      <h2>Points History</h2>
-      <p>Your recent points activity.</p>
+      </div>
+
+      {showPointsDetails && (
+  <div
+    className="points-modal-overlay"
+    onClick={() => setShowPointsDetails(false)}
+  >
+    <div
+      className="points-modal-card"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="points-modal-header">
+        <div>
+          <h2>Points Details</h2>
+          <p>Your points activity.</p>
+        </div>
+
+        <button
+          type="button"
+          className="points-modal-close"
+          onClick={() => setShowPointsDetails(false)}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="points-modal-body">
+        {sortedPointHistory.length === 0 ? (
+          <div className="empty-state">
+            No points activity yet.
+          </div>
+        ) : (
+          <div className="points-history-list">
+            {sortedPointHistory.map((item) => (
+              <div
+                className="points-history-row"
+                key={item.id}
+              >
+                <div className="points-history-info">
+                  <strong>
+                    {getPointHistoryTitle(item.pointType)}
+                  </strong>
+
+                  <span>{item.description}</span>
+
+                  <small>
+                    {formatDate(item.createdAt)}
+                  </small>
+                </div>
+
+                <div
+                  className={
+                    item.points >= 0
+                      ? 'points-change positive'
+                      : 'points-change negative'
+                  }
+                >
+                  {item.points > 0 ? '+' : ''}
+                  {item.points}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   </div>
-
-  {pointHistory.length === 0 ? (
-    <div className="empty-state">
-      No points activity yet.
-    </div>
-  ) : (
-    <div className="points-history-list">
-      {pointHistory.map((item) => (
-        <div
-          className="points-history-row"
-          key={item.id}
-        >
-          <div className="points-history-info">
-            <strong>
-              {getPointHistoryTitle(item.pointType)}
-            </strong>
-
-            <span>
-              {item.description}
-            </span>
-
-            <small>
-              {formatDate(item.createdAt)}
-            </small>
-          </div>
-
-          <div
-            className={
-              item.points >= 0
-                ? 'points-change positive'
-                : 'points-change negative'
-            }
-          >
-            {item.points > 0 ? '+' : ''}
-            {item.points}
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
-      </div>
+)}
     </main>
   );
 }

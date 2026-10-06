@@ -566,3 +566,140 @@ button {
   font-size: 13px;
   line-height: 1.4;
 }
+.tea-points-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.tea-points-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 0;
+}
+
+.tea-points-header > span {
+  font-size: 15px;
+  font-weight: 700;
+  color: #5f6675;
+}
+
+.points-details-button {
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #202633;
+  cursor: pointer;
+}
+
+.tea-points-balance {
+  padding: 10px 22px 22px;
+}
+
+.tea-points-balance strong {
+  display: block;
+  font-size: 46px;
+  line-height: 1;
+  color: #202633;
+}
+
+.tea-points-balance small {
+  display: block;
+  margin-top: 8px;
+  color: #667085;
+}
+
+.tea-points-breakdown {
+  display: grid;
+  grid-template-columns:
+    1fr 1px
+    1fr 1px
+    1fr;
+  border-top: 1px solid #e5e7eb;
+}
+
+.tea-points-breakdown-item {
+  padding: 18px 20px;
+}
+
+.tea-points-breakdown-item span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #667085;
+}
+
+.tea-points-breakdown-item strong {
+  font-size: 22px;
+  color: #202633;
+}
+
+.tea-points-breakdown-divider {
+  background: #e5e7eb;
+}
+
+.points-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.4);
+}
+
+.points-modal-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 75vh;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.points-modal-header {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  padding: 24px 24px 18px;
+
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+
+  z-index: 2;
+}
+
+.points-modal-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 0 24px 24px;
+}
+
+.points-modal-header h2 {
+  margin: 0;
+}
+
+.points-modal-header p {
+  margin: 4px 0 0;
+  color: #667085;
+}
+
+.points-modal-close {
+  border: 0;
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
