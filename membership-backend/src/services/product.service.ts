@@ -7,6 +7,7 @@ export async function getActiveProducts() {
       id,
       product_code AS productCode,
       name,
+      category,
       price,
       points_earned AS pointsEarned
     FROM products

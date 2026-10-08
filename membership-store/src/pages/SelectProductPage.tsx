@@ -9,6 +9,7 @@ type Product = {
   id: number;
   productCode: string;
   name: string;
+  category: string;
   price: number | string;
   pointsEarned: number;
 };
@@ -25,7 +26,8 @@ function SelectProductPage() {
   const [selectedItems, setSelectedItems] =
     useState<SelectedItem[]>([]);
 
-  const [keyword, setKeyword] = useState('');
+  const [selectedCategory, setSelectedCategory] =
+  useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -59,17 +61,27 @@ function SelectProductPage() {
     loadProducts();
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    const search = keyword.trim().toLowerCase();
+  const categories = useMemo(() => {
+  return Array.from(
+    new Set(
+      products
+        .map((product) => product.category)
+        .filter(Boolean)
+    )
+  );
+}, [products]);
 
-    if (!search) {
-      return products;
-    }
 
-    return products.filter((product) =>
-      product.name.toLowerCase().includes(search)
-    );
-  }, [keyword, products]);
+const categoryProducts = useMemo(() => {
+  if (!selectedCategory) {
+    return [];
+  }
+
+  return products.filter(
+    (product) =>
+      product.category === selectedCategory
+  );
+}, [products, selectedCategory]);
 
   function addProduct(product: Product) {
     setSelectedItems((current) => {
@@ -151,6 +163,103 @@ function SelectProductPage() {
     return (
       <div className="workspace-page">
         <p>Loading products...</p>
+        {selectedCategory && (
+  <div
+    className="product-modal-overlay"
+    onClick={() => setSelectedCategory(null)}
+  >
+    <div
+      className="product-modal"
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+    >
+      <div className="product-modal-header">
+        <div>
+          <h2>{selectedCategory}</h2>
+
+          <span>
+            {categoryProducts.length} products
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="product-modal-close"
+          onClick={() =>
+            setSelectedCategory(null)
+          }
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="product-modal-body">
+        <div className="product-grid">
+          {categoryProducts.map((product) => {
+            const quantity =
+              getQuantity(product.id);
+
+            return (
+              <div
+                key={product.id}
+                className={
+                  quantity > 0
+                    ? 'product-card selected'
+                    : 'product-card'
+                }
+              >
+                <div className="product-card-info">
+                  <strong>
+                    {product.name}
+                  </strong>
+
+                  <span>
+                    {product.pointsEarned} points
+                  </span>
+                </div>
+
+                {quantity === 0 ? (
+                  <button
+                    type="button"
+                    className="product-add-button"
+                    onClick={() =>
+                      addProduct(product)
+                    }
+                  >
+                    Add
+                  </button>
+                ) : (
+                  <div className="quantity-control">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        decreaseProduct(product.id)
+                      }
+                    >
+                      −
+                    </button>
+
+                    <strong>{quantity}</strong>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addProduct(product)
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     );
   }
@@ -183,101 +292,43 @@ function SelectProductPage() {
         </div>
       )}
 
-      <section className="product-search-card">
-        <label htmlFor="product-search">
-          Search Product
-        </label>
-
-        <input
-          id="product-search"
-          value={keyword}
-          onChange={(event) =>
-            setKeyword(event.target.value)
-          }
-          placeholder="Search by product name..."
-        />
-      </section>
-
       <div className="product-page-layout">
         <section className="product-list-section">
-          <div className="product-section-heading">
-            <h2>Products</h2>
+  <div className="product-section-heading">
+    <h2>Categories</h2>
 
-            <span>
-              {filteredProducts.length} products
-            </span>
-          </div>
+    <span>{categories.length} categories</span>
+  </div>
 
-          {filteredProducts.length === 0 ? (
-            <div className="empty-product-state">
-              No products found.
-            </div>
-          ) : (
-            <div className="product-grid">
-              {filteredProducts.map((product) => {
-                const quantity =
-                  getQuantity(product.id);
+  <div className="category-grid">
+    {categories.map((category) => {
+      const productCount = products.filter(
+        (product) =>
+          product.category === category
+      ).length;
 
-                return (
-                  <div
-                    className={
-                      quantity > 0
-                        ? 'product-card selected'
-                        : 'product-card'
-                    }
-                    key={product.id}
-                  >
-                    <div className="product-card-info">
-                      <strong>
-                        {product.name}
-                      </strong>
+      return (
+        <button
+          key={category}
+          type="button"
+          className="category-card"
+          onClick={() =>
+            setSelectedCategory(category)
+          }
+        >
+          <strong>{category}</strong>
 
-                      <span>
-                        {product.pointsEarned} points
-                      </span>
-                    </div>
-
-                    {quantity === 0 ? (
-                      <button
-                        type="button"
-                        className="product-add-button"
-                        onClick={() =>
-                          addProduct(product)
-                        }
-                      >
-                        Add
-                      </button>
-                    ) : (
-                      <div className="quantity-control">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            decreaseProduct(
-                              product.id
-                            )
-                          }
-                        >
-                          −
-                        </button>
-
-                        <strong>{quantity}</strong>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            addProduct(product)
-                          }
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+          <span>
+            {productCount}{' '}
+            {productCount === 1
+              ? 'product'
+              : 'products'}
+          </span>
+        </button>
+      );
+    })}
+  </div>
+</section>
 
         <aside className="order-summary-card">
           <h2>Current Selection</h2>
@@ -333,10 +384,112 @@ function SelectProductPage() {
           >
             Continue
           </button>
-        </aside>
-      </div>
+              </aside>
     </div>
-  );
+
+    {selectedCategory && (
+      <div
+        className="product-modal-overlay"
+        onClick={() => setSelectedCategory(null)}
+      >
+        <div
+          className="product-modal"
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+        >
+          <div className="product-modal-header">
+            <div>
+              <h2>{selectedCategory}</h2>
+
+              <span>
+                {categoryProducts.length} products
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className="product-modal-close"
+              onClick={() =>
+                setSelectedCategory(null)
+              }
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="product-modal-body">
+            <div className="product-grid">
+              {categoryProducts.map((product) => {
+                const quantity =
+                  getQuantity(product.id);
+
+                return (
+                  <div
+                    key={product.id}
+                    className={
+                      quantity > 0
+                        ? 'product-card selected'
+                        : 'product-card'
+                    }
+                  >
+                    <div className="product-card-info">
+                      <strong>
+                        {product.name}
+                      </strong>
+
+                      <span>
+                        {product.pointsEarned} points
+                      </span>
+                    </div>
+
+                    {quantity === 0 ? (
+                      <button
+                        type="button"
+                        className="product-add-button"
+                        onClick={() =>
+                          addProduct(product)
+                        }
+                      >
+                        Add
+                      </button>
+                    ) : (
+                      <div className="quantity-control">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            decreaseProduct(
+                              product.id
+                            )
+                          }
+                        >
+                          −
+                        </button>
+
+                        <strong>
+                          {quantity}
+                        </strong>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addProduct(product)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default SelectProductPage;
