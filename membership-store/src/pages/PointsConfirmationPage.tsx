@@ -166,9 +166,6 @@ function PointsConfirmationPage() {
     0
   );
 
-  const projectedBalance = member
-    ? member.availablePoints + pointsToEarn
-    : pointsToEarn;
 
   async function handleConfirmEarnPoints() {
     if (
@@ -272,6 +269,13 @@ function PointsConfirmationPage() {
     return null;
   }
 
+  const currentBalance =
+  Number(member.availablePoints);
+
+const newBalance =
+  currentBalance + Number(pointsToEarn);
+
+
   return (
     <div className="workspace-page">
       <div className="page-heading page-heading-with-action">
@@ -319,7 +323,7 @@ function PointsConfirmationPage() {
                 <span>Current Points</span>
 
                 <strong>
-                  {member.availablePoints.toLocaleString()}
+                  {currentBalance.toFixed(2)}
                 </strong>
               </div>
             </div>
@@ -382,7 +386,7 @@ function PointsConfirmationPage() {
 
                 <p>
                   This customer currently has{' '}
-                  {member.availablePoints.toLocaleString()}{' '}
+                  {currentBalance.toFixed(2)}{' '}
                   points and can redeem a reward.
                 </p>
               </div>
@@ -413,7 +417,7 @@ function PointsConfirmationPage() {
             <span>Current Balance</span>
 
             <strong>
-              {member.availablePoints.toLocaleString()}
+              {currentBalance.toFixed(2)}
             </strong>
           </div>
 
@@ -429,7 +433,7 @@ function PointsConfirmationPage() {
             <span>New Balance</span>
 
             <strong>
-              {projectedBalance.toLocaleString()}
+              {newBalance.toFixed(2)}
             </strong>
           </div>
 
