@@ -1,0 +1,186 @@
+.costing-app .inventory-scroll {
+  overflow-x: auto;
+}
+.costing-app .inventory-scroll table {
+  min-width: 850px;
+}
+.costing-app .inventory-balance {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.costing-app td small {
+  display: block;
+  margin-top: 5px;
+}
+.costing-app input[type="checkbox"] {
+  width: auto;
+}
+
+.costing-app .inventory-import-description {
+  max-width: 900px;
+  color: #607369;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+.costing-app .inventory-import-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 24px;
+}
+.costing-app .inventory-import-settings .costing-field > span {
+  line-height: 18px;
+}
+.costing-app .inventory-import-settings select,
+.costing-app .inventory-import-settings input:not([type="checkbox"]),
+.costing-app .inventory-import-toggle {
+  height: 44px;
+  box-sizing: border-box;
+}
+.costing-app .inventory-import-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid #bdcfc2;
+  border-radius: 7px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.costing-app .inventory-import-toggle input[type="checkbox"] {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.costing-app .inventory-import-help {
+  color: #607369;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.costing-app .inventory-import-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+  background: #f7faf8;
+  margin-bottom: 16px;
+}
+.costing-app .inventory-import-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.costing-app .inventory-import-file-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  max-width: 55%;
+}
+.costing-app .inventory-import-file-picker button {
+  flex-shrink: 0;
+  min-height: 44px;
+  margin: 0;
+}
+.costing-app .inventory-import-file-input {
+  display: none;
+}
+.costing-app .inventory-import-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #607369;
+}
+@media (max-width: 1000px) {
+  .costing-app .inventory-import-settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .costing-app .inventory-import-settings > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .costing-app .inventory-import-settings {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .costing-app .inventory-import-upload {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  .costing-app .inventory-import-file-picker {
+    max-width: 100%;
+  }
+}
+.costing-app .inventory-import-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.costing-app .inventory-import-heading h2 {
+  margin: 0;
+}
+.costing-app .inventory-import-heading button {
+  margin: 0;
+  flex-shrink: 0;
+}
+.costing-app .inventory-import-template-note {
+  padding: 12px 16px;
+  border: 1px solid #dce5df;
+  border-radius: 8px;
+  background: #f7faf8;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #607369;
+  margin: 0 0 24px;
+}
+.costing-app .inventory-import-mode {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+  margin: 0 0 16px;
+}
+.costing-app .inventory-import-mode p {
+  margin: 24px 0 0;
+}
+@media (max-width: 600px) {
+  .costing-app .inventory-import-mode {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .costing-app .inventory-import-mode p {
+    margin: 0;
+  }
+}
+.costing-app .inventory-import .inventory-scroll table {
+  min-width: 1280px;
+}
+.costing-app .inventory-import .inventory-scroll th:nth-child(3),
+.costing-app .inventory-import .inventory-scroll th:nth-child(4),
+.costing-app .inventory-import .inventory-scroll th:nth-child(5),
+.costing-app .inventory-import .inventory-scroll td:nth-child(3),
+.costing-app .inventory-import .inventory-scroll td:nth-child(4),
+.costing-app .inventory-import .inventory-scroll td:nth-child(5) {
+  text-align: right;
+  min-width: 120px;
+}

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:costing": "node --test tests/costing.test.mjs",
+    "test:inventory": "node --test tests/inventory.test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

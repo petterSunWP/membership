@@ -11,6 +11,8 @@ import rewardRoutes from './routes/reward.routes.js';
 import redemptionRoutes from './routes/redemption.routes.js';
 import customerRoutes from './routes/customer.routes.js';
 import staffAuthRoutes from './routes/staff-auth.routes.js';
+import costingRoutes from './costing/routes.js';
+import inventoryRoutes from './inventory/routes.js';
 
 
 dotenv.config();
@@ -30,9 +32,11 @@ app.use(
   })
 );
 
+app.use('/api/staff/inventory', inventoryRoutes);
 app.use(express.json());
 
 app.use('/api/staff/auth',staffAuthRoutes);
+app.use('/api/staff/costing',costingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/products', productRoutes);

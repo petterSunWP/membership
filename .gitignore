@@ -20,3 +20,8 @@ npm-debug.log*
 # editor
 .vscode/
 .idea/
+# Local database backups (may contain private development records)
+.local-backups/
+
+# Generated artifacts and private inventory workbooks
+outputs/

@@ -13,6 +13,8 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
+        <NavLink to="/inventory" className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}>Inventory</NavLink>
+        <NavLink to="/costing" className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}>Recipe Costing</NavLink>
         <NavLink
             to="/dashboard"
             className={({ isActive }) =>

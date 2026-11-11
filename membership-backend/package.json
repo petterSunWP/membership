@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "test:costing": "tsx --test tests/costing/*.test.ts",
+    "test:costing:local": "tsx --test tests/local/costing.integration.test.ts",
+    "test:inventory": "tsx --test tests/inventory/*.test.ts",
+    "test:inventory:local": "tsx --test tests/local/inventory.integration.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,8 +20,10 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "jszip": "^3.10.2",
     "mysql2": "^3.24.2",
     "openai": "^7.15.0",
     "resend": "^6.25.0"
@@ -30,5 +36,10 @@
     "@types/node": "^26.4.0",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }

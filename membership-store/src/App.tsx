@@ -6,6 +6,8 @@ import {
 } from 'react-router-dom';
 
 import StoreLayout from './layouts/StoreLayout';
+import CostingPage from './costing/CostingPage';
+import InventoryPage from './inventory/InventoryPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import LoginPage from './pages/LoginPage';
@@ -40,6 +42,9 @@ function App() {
                 />
               }
             />
+
+            <Route path="/costing" element={<CostingPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
 
             <Route
               path="/dashboard"
