@@ -108,11 +108,11 @@ try {
     });
     assert.match(result, /400\.12345678/);
     assert.match(result, /79\.12%/);
-    assert.match(result, /\$2\.12345678/);
+    assert.match(result, /\$2\.1235/);
     assert.equal(api.decimalDisplay("3000.00000000"), "3000");
-    assert.equal(api.costMoney("0.00104000"), "$0.00104");
+    assert.equal(api.costMoney("0.00104000"), "$0.0010");
     assert.equal(api.costMoney("0.00000001"), "$0.00000001");
-    assert.equal(api.costMoney("0.0000000000104"), "$0.0000000000104");
+    assert.equal(api.costMoney("0.0000000000104"), "$0.00000000001");
     assert.equal(api.costMoney("26"), "$26.0000");
     assert.equal(api.costMoney("0"), "$0.0000");
     assert.equal(api.costMoney(null), "—");
@@ -120,6 +120,27 @@ try {
       api.decimalDisplay("999999999999.12345678"),
       "999999999999.12345678",
     );
+    assert.equal(api.percentDisplay("90.6400"), "90.64");
+  });
+  await test("cost rounding is uniform at four places and extends only to avoid false zero", () => {
+    for (const [value, expected] of [
+      ["0.00742188", "$0.0074"],
+      ["0.00104", "$0.0010"],
+      ["1.23455", "$1.2346"],
+      ["9.99995", "$10.0000"],
+      ["-0.00745", "-$0.0075"],
+      ["-0.00000001", "-$0.00000001"],
+      ["0.00005", "$0.0001"],
+      ["0.00004999", "$0.00005"],
+      ["0.000009", "$0.00001"],
+      ["0.0000000000104", "$0.00000000001"],
+      ["0.0000", "$0.0000"],
+      ["-0.0000", "$0.0000"],
+      ["999999999999.99995", "$1,000,000,000,000.0000"],
+    ])
+      assert.equal(api.costMoney(value), expected);
+    assert.equal(api.costMoney("bad"), "—");
+    assert.equal(api.decimalDisplay("3000.00000000"), "3000");
     assert.equal(api.percentDisplay("90.6400"), "90.64");
   });
   await test("tea unit costs, tiny unit costs and final drink costs render without misleading zeros", () => {
@@ -146,8 +167,8 @@ try {
       refresh: async () => {},
     });
     assert.match(raw, /\$0\.0520/);
-    assert.match(prepared, /\$0\.00104/);
-    assert.match(prepared, /\$0\.0000000000104/);
+    assert.match(prepared, /\$0\.0010/);
+    assert.match(prepared, /\$0\.00000000001/);
     const drink = render(CostCard, {
       materials: [leaves, tea],
       cost: {

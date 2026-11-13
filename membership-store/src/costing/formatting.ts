@@ -9,8 +9,8 @@ export const money = (value: string | null | undefined, currency = "NZD") =>
         maximumFractionDigits: 2,
       }).format(Number(value));
 
-// Keep meaningful decimal digits, including tiny nonzero unit costs. Using decimal
-// strings and BigInt avoids converting precise API values to binary floating point.
+// Round costs to four places, extending only when a nonzero value would become zero.
+// Decimal strings and BigInt keep this display-only rounding free of binary float errors.
 export function costMoney(
   value: string | null | undefined,
   currency = "NZD",
@@ -19,9 +19,20 @@ export function costMoney(
   const source = value.trim(),
     negative = source.startsWith("-");
   const [whole, fraction = ""] = source.replace(/^[+-]/, "").split(".");
-  const decimals = fraction.replace(/0+$/, "").padEnd(4, "0");
-  const prefix = negative && /[1-9]/.test(source) ? "-" : "";
-  return `${prefix}${new Intl.NumberFormat("en-NZ", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(BigInt(whole!))}.${decimals}`;
+  const roundedAt = (places: number) => {
+    const kept = fraction.padEnd(places, "0").slice(0, places);
+    return (
+      BigInt(`${whole}${kept}`) + ((fraction[places] ?? "0") >= "5" ? 1n : 0n)
+    );
+  };
+  let places = 4;
+  let rounded = roundedAt(places);
+  while (rounded === 0n && /[1-9]/.test(source)) rounded = roundedAt(++places);
+  const digits = rounded.toString().padStart(places + 1, "0");
+  const integer = digits.slice(0, -places);
+  const decimals = digits.slice(-places);
+  const prefix = negative && rounded !== 0n ? "-" : "";
+  return `${prefix}${new Intl.NumberFormat("en-NZ", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(BigInt(integer))}.${decimals}`;
 }
 export function decimalDisplay(
   value: string | number | null | undefined,
