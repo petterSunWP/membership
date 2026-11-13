@@ -6,7 +6,8 @@ import {
   emptyLibraries,
   errorMessage,
   money,
-  decimalDisplay,
+  costMoney,
+  percentDisplay,
   type Libraries,
   type Location,
 } from "./api";
@@ -318,13 +319,13 @@ function Overview({ base, data }: { base: string; data: Libraries }) {
                 </td>
                 {p.costing ? (
                   <>
-                    <td>{money(p.costing.cost)}</td>
+                    <td>{costMoney(p.costing.cost)}</td>
                     <td>{money(p.costing.revenue)}</td>
                     <td>{money(p.costing.grossProfit)}</td>
                     <td>
                       {p.costing.marginPercent === null
                         ? "Undefined"
-                        : `${decimalDisplay(p.costing.marginPercent)}%`}
+                        : `${percentDisplay(p.costing.marginPercent)}%`}
                     </td>
                   </>
                 ) : (

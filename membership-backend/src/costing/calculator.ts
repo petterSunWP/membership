@@ -135,7 +135,7 @@ export function createCalculator(materials: readonly Material[]) {
     const revenue = exclusive(sellingPrice);
     const profit = revenue.sub(cost);
     return {
-      cost: cost.toFixed(),
+      cost: cost.toCostString(),
       revenue: revenue.toFixed(),
       grossProfit: profit.toFixed(),
       marginPercent:
@@ -144,7 +144,7 @@ export function createCalculator(materials: readonly Material[]) {
           : profit.div(revenue).mul(Decimal.of("100")).toFixed(4),
       breakdown: breakdown.map((line) => ({
         ...line,
-        cost: line.cost.toFixed(),
+        cost: line.cost.toCostString(),
       })),
     };
   }

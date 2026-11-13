@@ -187,3 +187,12 @@ using existing DB_* settings and a verified database/server UUID. Local mode ret
 the original local identity checks. See [RELEASE-COSTING-INVENTORY.md](RELEASE-COSTING-INVENTORY.md)
 for the approved manual Git pull / additive SQL / environment / restart workflow.
 The user will upload the real Excel again on production; local records are not migrated.
+
+Cost display precision (local update): all ingredient unit/purchase costs, recipe totals
+and cost breakdowns use the shared costMoney formatter with at least four decimal places,
+retaining meaningful API decimals so tiny nonzero costs remain visible. Quantities use
+trimmed decimal strings without reducing their precision. Gross margin remains two decimal
+places; retail prices, revenue and gross-profit amounts retain their usual currency display.
+The backend retains exact rational calculations and existing eight-decimal database storage.
+Cost API serialization extends beyond eight decimal places only when a nonzero value would
+otherwise serialize as zero. This requires no schema change or historical-data rewrite.

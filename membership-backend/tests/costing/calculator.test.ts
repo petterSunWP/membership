@@ -188,3 +188,71 @@ test("customisations support additions, removal, replacement and explicit quanti
   );
   assert.equal(lines[0]!.quantity, "400");
 });
+
+test("60g tea leaves at $26/500g yields exact low-cost tea and drink costs", () => {
+  const materials: Material[] = [
+    {
+      id: "red",
+      kind: "RAW",
+      unit: "g",
+      price: price("26"),
+      usable: { quantity: "500", unit: "g" },
+    },
+    {
+      id: "tea",
+      kind: "PREPARED",
+      unit: "ml",
+      yield: { quantity: "3000", unit: "ml" },
+      inputs: [{ materialId: "red", quantity: "60", unit: "g" }],
+    },
+  ];
+  const calc = createCalculator(materials);
+  assert.equal(calc.unitCost("red").toCostString(), "0.05200000");
+  assert.equal(calc.unitCost("tea").toCostString(), "0.00104000");
+  const result = calc.recipe(
+    [{ materialId: "tea", quantity: "450", unit: "ml" }],
+    { amount: "5.75", taxBasis: "INCLUSIVE", gstRate: "0.15" },
+  );
+  assert.equal(result.cost, "0.46800000");
+  assert.equal(result.breakdown[0]!.cost, "0.46800000");
+  assert.equal(result.revenue, "5.00000000");
+  assert.equal(result.grossProfit, "4.53200000");
+  assert.equal(result.marginPercent, "90.6400");
+});
+test("tiny prepared unit costs stay nonzero in API output and propagate without intermediate rounding", () => {
+  const calc = createCalculator([
+    {
+      id: "raw",
+      kind: "RAW",
+      unit: "g",
+      price: price("1"),
+      usable: { quantity: "1", unit: "g" },
+    },
+    {
+      id: "tiny",
+      kind: "PREPARED",
+      unit: "ml",
+      yield: { quantity: "3000000000", unit: "ml" },
+      inputs: [{ materialId: "raw", quantity: "1", unit: "g" }],
+    },
+  ]);
+  const unit = calc.unitCost("tiny");
+  assert.equal(unit.toFixed(), "0.00000000");
+  assert.ok(Decimal.of(unit.toCostString()).compare(Decimal.of("0")) > 0);
+  const result = calc.recipe(
+    [{ materialId: "tiny", quantity: "3000000000", unit: "ml" }],
+    price("5"),
+  );
+  assert.equal(result.cost, "1.00000000");
+  const small = calc.recipe(
+    [{ materialId: "tiny", quantity: "1", unit: "ml" }],
+    price("5"),
+  );
+  assert.ok(Decimal.of(small.cost).compare(Decimal.of("0")) > 0);
+  assert.equal(small.breakdown[0]!.cost, small.cost);
+  assert.equal(Decimal.of("0").toCostString(), "0.00000000");
+  assert.equal(
+    Decimal.of("-0.000000000001").toCostString(),
+    "-0.000000000001000",
+  );
+});

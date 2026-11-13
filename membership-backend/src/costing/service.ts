@@ -322,7 +322,9 @@ export class CostingService {
         for (const item of result) {
           try {
             item.unitCost = safelyCalculate(() =>
-              createCalculator(snapshot).unitCost(String(item.id)).toFixed(),
+              createCalculator(snapshot)
+                .unitCost(String(item.id))
+                .toCostString(),
             );
             item.costError = null;
           } catch (error) {

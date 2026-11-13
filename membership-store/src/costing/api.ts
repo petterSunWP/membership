@@ -232,28 +232,4 @@ export const mapLine = (line: DbLine): Line => ({
   quantity: line.quantity,
   unit: line.unit_code,
 });
-// Display only. Monetary calculations are performed exactly by the backend.
-export const money = (value: string | null | undefined, currency = "NZD") =>
-  value == null
-    ? "—"
-    : new Intl.NumberFormat("en-NZ", {
-        style: "currency",
-        currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(Number(value));
-
-// Presentation only: do not use formatted values in calculations or saved payloads.
-export const decimalDisplay = (
-  value: string | number | null | undefined,
-  empty = "—",
-) =>
-  value == null || String(value).trim() === ""
-    ? empty
-    : Number.isFinite(Number(value))
-      ? new Intl.NumberFormat("en-NZ", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-          useGrouping: false,
-        }).format(Number(value))
-      : String(value);
+export { money, costMoney, decimalDisplay, percentDisplay } from "./formatting";

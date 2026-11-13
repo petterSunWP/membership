@@ -583,6 +583,68 @@ test("local HTTP and SQL costing integration (rollback-only fixtures)", async (t
       },
     );
     await t.test(
+      "low-cost tea propagates through saved preparation and drink APIs with no precision loss",
+      async () => {
+        const leaves = await material("PRECISION_LEAVES");
+        const tea = await material("PRECISION_TEA", "PREPARED", "ml");
+        await request(`/materials/${leaves}/prices`, "POST", {
+          amount: "26",
+          quantity: "500",
+          unit: "g",
+          taxBasis: "EXCLUSIVE",
+          gstRate: "0.15",
+        });
+        await request(`/materials/${tea}/preparation`, "POST", {
+          lines: [{ materialId: leaves, quantity: "60", unit: "g" }],
+          yieldQuantity: "3000",
+          yieldUnit: "ml",
+        });
+        const saved = (await request("/materials")).find(
+          (m: any) => m.id === tea,
+        );
+        assert.equal(saved.unitCost, "0.00104000");
+        const size = (
+          await request("/sizes", "POST", {
+            code: "PRECISION",
+            label: "Precision test",
+          })
+        ).id;
+        const recipe = (
+          await request("/recipes", "POST", { name: "Precision tea test" })
+        ).id;
+        const variant = (
+          await request(`/recipes/${recipe}/variants`, "POST", {
+            sizeId: size,
+            priceSource: "OVERRIDE",
+            priceOverride: "5.75",
+            taxBasis: "INCLUSIVE",
+            gstRate: "0.15",
+          })
+        ).id;
+        await request(`/variants/${variant}/revisions`, "POST", {
+          lines: [{ materialId: tea, quantity: "450", unit: "ml" }],
+        });
+        const cost = await request(`/variants/${variant}/cost`);
+        assert.equal(cost.cost, "0.46800000");
+        assert.equal(cost.marginPercent, "90.6400");
+        assert.equal(cost.breakdown[0].quantity, "450.00000000");
+        const tiny = await material("PRECISION_TINY", "PREPARED", "ml");
+        await request(`/materials/${tiny}/preparation`, "POST", {
+          lines: [{ materialId: tea, quantity: "1", unit: "ml" }],
+          yieldQuantity: "1000000000",
+          yieldUnit: "ml",
+        });
+        const tinyCost = (await request("/materials")).find(
+          (m: any) => m.id === tiny,
+        ).unitCost;
+        assert.match(tinyCost, /^0\.0+104/);
+        assert.notEqual(tinyCost, "0.00000000");
+        const priceHistory = await request(`/materials/${leaves}`);
+        assert.equal(priceHistory.prices[0].amount, "26.00000000");
+        assert.equal(priceHistory.prices[0].usable_quantity, "500.00000000");
+      },
+    );
+    await t.test(
       "viewer cannot write, and access boundaries use current database grants",
       async () => {
         await raw.execute(

@@ -4,7 +4,7 @@ import {
   costingRequest,
   decimalDisplay,
   errorMessage,
-  money,
+  costMoney,
   mapLine,
   type Libraries,
   type Material,
@@ -101,7 +101,7 @@ export function Materials({ base, data, kind, canEdit, refresh }: Props) {
                     </span>
                   ) : (
                     <>
-                      {money(m.unitCost)} / {m.unit_code}
+                      {costMoney(m.unitCost)} / {m.unit_code}
                     </>
                   )}
                 </td>
@@ -464,7 +464,7 @@ export function PriceForm({
                   <small>Current price</small>
                 )}
               </td>
-              <td>{money(p.amount)}</td>
+              <td>{costMoney(p.amount)}</td>
               <td>
                 {decimalDisplay(p.usable_quantity)} {p.unit_code}
               </td>

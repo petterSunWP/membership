@@ -62,10 +62,27 @@ export class Decimal {
     return delta < 0n ? -1 : delta > 0n ? 1 : 0;
   }
 
+  /** Cost API output only: retain >=8 places, extending tiny nonzero values.
+   * Internal rational arithmetic and stored historical DECIMAL values are unchanged.
+   */
+  toCostString(): string {
+    const normal = this.toFixed(8);
+    if (this.numerator === 0n || /[1-9]/.test(normal)) return normal;
+    const absolute = this.numerator < 0n ? -this.numerator : this.numerator;
+    const places = Math.max(
+      8,
+      this.denominator.toString().length - absolute.toString().length + 3,
+    );
+    return this.formatFixed(places);
+  }
+
   /** Round half away from zero, only at an output boundary. */
   toFixed(places = 8): string {
     if (!Number.isInteger(places) || places < 0 || places > 12)
       throw new Error("INVALID_PRECISION");
+    return this.formatFixed(places);
+  }
+  private formatFixed(places: number): string {
     const scale = 10n ** BigInt(places);
     const negative = this.numerator < 0n;
     const scaled = (negative ? -this.numerator : this.numerator) * scale;

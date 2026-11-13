@@ -13,6 +13,8 @@ import {
   type Line,
   type Cost,
   money,
+  costMoney,
+  percentDisplay,
   decimalDisplay,
 } from "./api";
 export function Modal({
@@ -289,7 +291,7 @@ export function CostCard({
       <div className="costing-metrics">
         <div>
           <span>Recipe cost · ex GST</span>
-          <strong>{money(cost.cost, currency)}</strong>
+          <strong>{costMoney(cost.cost, currency)}</strong>
         </div>
         <div>
           <span>Revenue · ex GST</span>
@@ -304,7 +306,7 @@ export function CostCard({
           <strong>
             {cost.marginPercent === null
               ? "Undefined"
-              : `${decimalDisplay(cost.marginPercent)}%`}
+              : `${percentDisplay(cost.marginPercent)}%`}
           </strong>
         </div>
       </div>
@@ -326,7 +328,7 @@ export function CostCard({
               <td>
                 {decimalDisplay(line.quantity)} {line.unit}
               </td>
-              <td>{money(line.cost, currency)}</td>
+              <td>{costMoney(line.cost, currency)}</td>
             </tr>
           ))}
         </tbody>

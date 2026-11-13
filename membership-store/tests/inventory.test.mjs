@@ -38,7 +38,7 @@ try {
     cost_price: null,
     price_quantity: null,
   };
-  test("stock table distinguishes unknown quantities, zero and unknown prices with two decimal display", () => {
+  test("stock table distinguishes unknown quantities, zero and unknown prices without quantity rounding", () => {
     const html = render(InventoryTable, {
       items: [
         item,
@@ -56,12 +56,12 @@ try {
       onAction() {},
     });
     assert.match(html, /Not counted/);
-    assert.match(html, /0.00 g/);
-    assert.match(html, /2.12 g/);
+    assert.match(html, /0 g/);
+    assert.match(html, /2.12345 g/);
     assert.match(html, /Unknown/);
     assert.match(html, /Low stock/);
     assert.match(html, /Stock operation/);
-    assert.doesNotMatch(html, /2.12345/);
+    assert.doesNotMatch(html, /0\.00000000 g/);
     assert.doesNotMatch(html, /[\p{Script=Han}]/u);
   });
   test("viewer has history access but no write controls", () => {
@@ -91,8 +91,8 @@ try {
         },
       ],
     });
-    assert.match(html, /-2.12/);
-    assert.match(html, /7.88/);
+    assert.match(html, /-2.12345/);
+    assert.match(html, /7.87655/);
     assert.match(html, /Original movement #2/);
   });
   test("import defaults to explicitly confirmed exclusive prices and editable GST 0.15", () => {
@@ -144,7 +144,7 @@ try {
     });
     assert.match(html, /Inventory pack specification/);
     assert.doesNotMatch(html, /<select[^>]*><option value="g"/);
-    assert.match(html, /value="0.00"/);
+    assert.match(html, /value="0"/);
     assert.doesNotMatch(html, /value="0.15"/);
   });
   test("shared catalog excludes prepared ingredients and archived materials", () => {
