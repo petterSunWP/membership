@@ -567,14 +567,7 @@ function VariantEditor({
             .join(" · ")}
         </p>
       )}
-      <details>
-        <summary>Formulation history ({variant.revisions.length})</summary>
-        {variant.revisions.map((r) => (
-          <p key={r.id}>
-            Revision {r.revision} · {r.created_at}
-          </p>
-        ))}
-      </details>
+      <FormulationHistory variant={variant} />
       <hr />
       <div className="costing-toolbar">
         <h3>Toppings & customisations</h3>
@@ -905,5 +898,44 @@ function AttachOption({
       </div>
       <ErrorBox message={error} />
     </form>
+  );
+}
+
+export function FormulationHistory({ variant }: { variant: Variant }) {
+  const current = variant.revisions.find(
+    (r) => String(r.id) === String(variant.head?.recipe_revision_id),
+  );
+  return (
+    <section className="costing-formulation-history">
+      <p>
+        {current
+          ? `Current cost uses Version ${current.revision}, with current ingredient prices and prepared ingredient costs.`
+          : "No saved formulation is currently used for costing."}
+      </p>
+      <details>
+        <summary>Saved formulations ({variant.revisions.length})</summary>
+        <p className="costing-hint">Each version retains its saved ingredients and quantities. These are formulation records, not historical price snapshots.</p>
+        {variant.revisions.map((r) => (
+          <article key={r.id} className="costing-history-version">
+            <strong>Version {r.revision}</strong>
+            {String(r.id) === String(variant.head?.recipe_revision_id) && (
+              <span className="costing-history-current">Currently used for costing</span>
+            )}
+            <div className="costing-hint">Saved {r.created_at.replace("T", " ").replace(/\.\d+(Z)?$/, "$1")}</div>
+            {r.lines?.length ? (
+              <ul className="costing-history-ingredients">
+                {r.lines.map((line) => (
+                  <li key={line.id}>
+                    {line.material_name ?? `Unavailable material (${line.material_id})`}
+                    {line.material_code ? ` · ${line.material_code}` : ""}
+                    {` — ${decimalDisplay(line.quantity)} ${line.unit_code}`}
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="costing-hint">Ingredient details are unavailable for this version.</p>}
+          </article>
+        ))}
+      </details>
+    </section>
   );
 }

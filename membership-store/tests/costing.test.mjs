@@ -14,7 +14,7 @@ try {
   );
   const { LineEditor, CostCard, DecimalInput, TaxFields } =
     await server.ssrLoadModule("/src/costing/components.tsx");
-  const { Recipes } = await server.ssrLoadModule("/src/costing/Recipes.tsx");
+  const { Recipes, FormulationHistory } = await server.ssrLoadModule("/src/costing/Recipes.tsx");
   const { ReferenceLibrary } = await server.ssrLoadModule(
     "/src/costing/ReferenceLibrary.tsx",
   );
@@ -352,6 +352,32 @@ try {
       globalThis.fetch = original;
       globalThis.localStorage = originalStorage;
     }
+  });
+  test("formulation history shows every version's quantities and identifies the actual costing head", () => {
+    const variant = {
+      head: { recipe_revision_id: "old" },
+      revisions: [
+        { id: "new", revision: 3, created_at: "2026-11-16 13:15:00.135839", lines: [
+          { id: "1", material_id: "1", material_name: "Tea", material_code: "TEA", quantity: "60.00000000", unit_code: "g" },
+        ] },
+        { id: "old", revision: 2, created_at: "2026-11-16 13:14:28.170771", lines: [
+          { id: "2", material_id: "2", material_name: "Milk", material_code: "MILK", quantity: "100.00000000", unit_code: "ml" },
+        ] },
+      ],
+    };
+    const html = renderToStaticMarkup(React.createElement(FormulationHistory, { variant }));
+    assert.match(html, /Current cost uses Version 2/);
+    assert.match(html, /Tea.*TEA.*60 g/);
+    assert.match(html, /Milk.*MILK.*100 ml/);
+    assert.equal((html.match(/Currently used for costing/g) ?? []).length, 1);
+    assert.doesNotMatch(html, /60\.00000000|135839/);
+    assert.match(html, /not historical price snapshots/);
+    const missing = renderToStaticMarkup(React.createElement(FormulationHistory, {
+      variant: { head: null, revisions: [{ id: "x", revision: 1, created_at: "2026-11-16", lines: [] }] },
+    }));
+    assert.match(missing, /No saved formulation is currently used/);
+    assert.match(missing, /Ingredient details are unavailable/);
+    assert.doesNotMatch(missing, /Currently used for costing/);
   });
 } finally {
   await server.close();

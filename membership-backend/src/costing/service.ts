@@ -925,6 +925,17 @@ export class CostingService {
           "SELECT id,revision,created_at FROM costing_recipe_revisions WHERE brand_id=? AND location_id=? AND variant_id=? ORDER BY revision DESC",
           [...scopeValues(s), v.id],
         );
+        // Fetch immutable formulation lines for every saved version, not just the head.
+        const historyLines = await rows(
+          c,
+          `SELECT l.*,m.name AS material_name,m.code AS material_code FROM costing_recipe_lines l JOIN costing_recipe_revisions r ON r.id=l.recipe_revision_id AND r.brand_id=l.brand_id AND r.location_id=l.location_id LEFT JOIN costing_materials m ON m.id=l.material_id AND m.brand_id=l.brand_id AND m.location_id=l.location_id WHERE r.brand_id=? AND r.location_id=? AND r.variant_id=? ORDER BY l.display_order,l.id`,
+          [...scopeValues(s), v.id],
+        );
+        for (const revision of v.revisions) {
+          revision.lines = historyLines.filter(
+            (line) => String(line.recipe_revision_id) === String(revision.id),
+          );
+        }
       }
       return { recipe, variants };
     });

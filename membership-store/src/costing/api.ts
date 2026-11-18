@@ -73,6 +73,7 @@ export interface Yield {
   notes: string | null;
 }
 export interface Revision {
+  lines?: (DbLine & { material_name: string | null; material_code: string | null })[];
   id: string;
   revision: number;
   instructions?: string;
