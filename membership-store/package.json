@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:costing": "node --test tests/costing.test.mjs",
+    "test:costing": "node --test tests/costing.test.mjs tests/formulation.test.mjs",
     "test:inventory": "node --test tests/inventory.test.mjs"
   },
   "dependencies": {

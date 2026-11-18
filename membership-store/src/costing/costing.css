@@ -403,3 +403,103 @@
     font-size: 12px;
   }
 }
+
+.costing-material-picker {
+  position: relative;
+  min-width: 0;
+}
+.costing-app .costing-material-picker > input {
+  padding-right: 36px;
+}
+.costing-app .costing-picker-clear {
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  padding: 5px 8px;
+  margin: 0;
+  min-width: 0;
+  background: transparent;
+  color: #607369;
+  border: 0;
+  font-size: 20px;
+}
+.costing-picker-popup {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #bdcfc2;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #152f2526;
+  overflow: hidden;
+}
+.costing-picker-popup [role="listbox"] {
+  max-height: 260px;
+  overflow-y: auto;
+}
+.costing-app .costing-picker-popup [role="option"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  text-align: left;
+  background: #fff;
+  color: #233d31;
+  border: 0;
+  border-radius: 0;
+  font-size: 14px;
+}
+.costing-app .costing-picker-popup [role="option"].highlighted,
+.costing-app .costing-picker-popup [role="option"]:hover {
+  background: #edf4ed;
+}
+.costing-picker-popup small {
+  display: block;
+  font-size: 11px;
+  color: #728578;
+  margin-top: 3px;
+  font-weight: 400;
+}
+.costing-picker-status {
+  flex-shrink: 0;
+  color: #96701d;
+  font-size: 11px;
+  font-weight: 500;
+}
+.costing-picker-popup p {
+  margin: 0;
+  padding: 10px 12px;
+  color: #728578;
+  font-size: 12px;
+}
+.costing-app .costing-unit-readonly {
+  background: #f3f6f4;
+  color: #607369;
+  cursor: default;
+}
+.costing-line-issue {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border: 1px solid #ebd5a7;
+  border-radius: 7px;
+  background: #fffbf1;
+  color: #78591a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.costing-line-issue p {
+  margin: 0;
+}
+.costing-line-issue small {
+  display: block;
+  margin-top: 4px;
+}
+.costing-line-issue a {
+  color: #2c604a;
+  font-weight: 650;
+}

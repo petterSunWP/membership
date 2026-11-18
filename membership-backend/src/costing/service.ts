@@ -408,7 +408,14 @@ export class CostingService {
       ? spec.quantity
       : decimal(input.quantity, true);
     const u = spec?.compatible ? unit(spec.unit) : unit(input.unit);
-    safelyCalculate(() => convert(quantity, u, unit(material.unit_code)));
+    safelyCalculate(() =>
+      convert(
+        quantity,
+        u,
+        unit(material.unit_code),
+        `Price quantity "${material.name}"`,
+      ),
+    );
     const priceId = await insert(c, "material_prices", s, {
       material_id: material.id,
       amount: p.amount,
@@ -506,7 +513,14 @@ export class CostingService {
       ensure(material.status === "ACTIVE", "An ingredient is archived.");
       const quantity = decimal(line.quantity, true);
       const u = unit(line.unit);
-      safelyCalculate(() => convert(quantity, u, unit(material.unit_code)));
+      safelyCalculate(() =>
+        convert(
+          quantity,
+          u,
+          unit(material.unit_code),
+          `Ingredient "${material.name}"`,
+        ),
+      );
       result.push({ materialId: String(material.id), quantity, unit: u });
     }
     return result;
@@ -521,7 +535,14 @@ export class CostingService {
       const lines = await this.validateLines(c, s, input.lines);
       const quantity = decimal(input.yieldQuantity, true);
       const u = unit(input.yieldUnit);
-      safelyCalculate(() => convert(quantity, u, unit(material.unit_code)));
+      safelyCalculate(() =>
+        convert(
+          quantity,
+          u,
+          unit(material.unit_code),
+          `Measured yield "${material.name}"`,
+        ),
+      );
       const [head] = await rows(
         c,
         "SELECT * FROM costing_preparation_heads WHERE brand_id=? AND location_id=? AND material_id=?",
@@ -537,6 +558,7 @@ export class CostingService {
       const snapshot = await this.materialSnapshot(c, s);
       const prospective: Material = {
         id: String(material.id),
+        name: String(material.name),
         kind: "PREPARED",
         unit: unit(material.unit_code),
         yield: { quantity, unit: u },
@@ -617,7 +639,14 @@ export class CostingService {
       );
       const quantity = decimal(input.quantity, true);
       const u = unit(input.unit);
-      safelyCalculate(() => convert(quantity, u, unit(material.unit_code)));
+      safelyCalculate(() =>
+        convert(
+          quantity,
+          u,
+          unit(material.unit_code),
+          `Measured yield "${material.name}"`,
+        ),
+      );
       const measurementId = await insert(c, "yield_measurements", s, {
         preparation_revision_id: revision.id,
         quantity,
@@ -727,6 +756,7 @@ export class CostingService {
           return [
             {
               id: String(m.id),
+              name: String(m.name),
               kind: "PREPARED",
               unit: unit(m.unit_code),
               yield: { quantity: h.quantity, unit: unit(h.unit_code) },
@@ -745,6 +775,7 @@ export class CostingService {
         return [
           {
             id: String(m.id),
+            name: String(m.name),
             kind: choice(m.kind, ["RAW", "PACKAGING"]),
             unit: unit(m.unit_code),
             price: {

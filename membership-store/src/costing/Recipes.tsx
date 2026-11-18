@@ -1,3 +1,4 @@
+import { formulationIssue, prepareFormulationLines } from "./formulation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -454,7 +455,7 @@ function VariantEditor({
     setBusy(true);
     try {
       await costingRequest(`${base}/variants/${variant.id}/revisions`, "POST", {
-        lines,
+        lines: prepareFormulationLines(lines, data.materials),
         version: variant.head?.row_version,
         resetCustomisations: reset,
       });
@@ -543,7 +544,18 @@ function VariantEditor({
               this formulation.
             </label>
           )}
-          <button disabled={busy || !lines.length}>Save formulation</button>
+          {formulationIssue(lines, data.materials) && (
+            <p className="costing-warning">
+              Complete material selection and resolve the costing warnings above
+              before saving. Prices can be set in a new tab; return here to
+              refresh current costs.
+            </p>
+          )}
+          <button
+            disabled={busy || Boolean(formulationIssue(lines, data.materials))}
+          >
+            Save formulation
+          </button>
         </form>
       ) : (
         <p>

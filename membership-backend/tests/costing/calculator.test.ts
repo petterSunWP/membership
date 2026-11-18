@@ -256,3 +256,67 @@ test("tiny prepared unit costs stay nonzero in API output and propagate without 
     "-0.000000000001000",
   );
 });
+
+test("five gram-priced inputs and a measured 4650g yield are valid", () => {
+  const quantities = ["450", "300", "100", "800", "3000"];
+  const prices = ["0.01", "0.02", "0.03", "0.004", "0.005"];
+  const inputs: Material[] = quantities.map((_q, i) => ({
+    id: `weight${i}`,
+    name: `Ingredient ${i + 1}`,
+    kind: "RAW",
+    unit: "g",
+    price: price(prices[i]!),
+    usable: { quantity: "1", unit: "g" },
+  }));
+  inputs.push({
+    id: "batch",
+    name: "Gram batch",
+    kind: "PREPARED",
+    unit: "g",
+    yield: { quantity: "4650", unit: "g" },
+    inputs: quantities.map((quantity, i) => ({
+      materialId: `weight${i}`,
+      quantity,
+      unit: "g",
+    })),
+  });
+  const calc = createCalculator(inputs);
+  assert.equal(calc.unitCost("batch").toFixed(), "0.00681720");
+  assert.equal(
+    calc.recipe(
+      [{ materialId: "batch", quantity: "4650", unit: "g" }],
+      price("40"),
+    ).cost,
+    "31.70000000",
+  );
+});
+test("unit conflicts identify the specific ingredient, price or measured output without assuming g equals ml", () => {
+  const milk: Material = {
+    id: "milk",
+    name: "Fresh milk",
+    kind: "RAW",
+    unit: "ml",
+    price: price("3"),
+    usable: { quantity: "1000", unit: "ml" },
+  };
+  const batch: Material = {
+    id: "mix",
+    name: "Mango mix",
+    kind: "PREPARED",
+    unit: "g",
+    yield: { quantity: "300", unit: "g" },
+    inputs: [{ materialId: "milk", quantity: "300", unit: "g" }],
+  };
+  assert.throws(
+    () => createCalculator([milk, batch]).unitCost("mix"),
+    /Ingredient "Fresh milk": entered g, but the costing unit is ml/,
+  );
+  assert.throws(
+    () => createCalculator([milk, { ...batch, unit: "ml" }]).unitCost("mix"),
+    /Measured yield for "Mango mix": entered g, but the costing unit is ml/,
+  );
+  assert.throws(
+    () => createCalculator([{ ...milk, unit: "g" }]).unitCost("milk"),
+    /Price quantity for "Fresh milk": entered ml, but the costing unit is g/,
+  );
+});

@@ -1,3 +1,9 @@
+import { MaterialPicker } from "./MaterialPicker";
+import {
+  lineInMaterialUnit,
+  materialCostIssue,
+  selectLineMaterial,
+} from "./formulation";
 import {
   useEffect,
   useRef,
@@ -7,6 +13,7 @@ import {
 } from "react";
 import {
   units,
+  compatibleUnits,
   type Unit,
   type Tax,
   type Material,
@@ -146,13 +153,20 @@ export function DecimalInput({
 export function UnitSelect({
   value,
   onChange,
+  compatibleWith,
 }: {
+  compatibleWith?: Unit;
   value: Unit;
   onChange: (v: Unit) => void;
 }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value as Unit)}>
-      {units.map((u) => (
+      {compatibleWith && !compatibleUnits(compatibleWith).includes(value) && (
+        <option value={value} disabled>
+          {value} (incompatible)
+        </option>
+      )}
+      {(compatibleWith ? compatibleUnits(compatibleWith) : units).map((u) => (
         <option key={u} value={u}>
           {u}
         </option>
@@ -210,52 +224,86 @@ export function LineEditor({
     onChange(lines.map((l, n) => (n === i ? { ...l, ...patch } : l)));
   return (
     <div className="costing-lines">
-      {lines.map((line, i) => (
-        <div className="costing-line" key={i}>
-          <Field label={`Ingredient ${i + 1}`}>
-            <select
+      {lines.map((line, i) => {
+        const selected = available.find((m) => m.id === line.materialId);
+        let normalized = line,
+          unitIssue = "";
+        if (selected) {
+          try {
+            normalized = lineInMaterialUnit(line, selected);
+          } catch (error) {
+            unitIssue = (error as Error).message;
+          }
+        }
+        const issue = selected
+          ? materialCostIssue(selected)
+          : line.materialId
+            ? "This material is no longer available. Choose an active replacement."
+            : null;
+        return (
+          <div className="costing-line" key={i}>
+            <MaterialPicker
+              label={`Ingredient ${i + 1}`}
+              materials={available}
               value={line.materialId}
-              required
-              onChange={(e) => {
-                const m = available.find((m) => m.id === e.target.value);
-                change(i, {
-                  materialId: e.target.value,
-                  unit: m?.unit_code ?? "g",
-                });
-              }}
+              onSelect={(m) => change(i, selectLineMaterial(line, selected, m))}
+            />
+            <Field label="Quantity">
+              <DecimalInput
+                inputMode="decimal"
+                value={unitIssue ? "" : normalized.quantity}
+                onChange={(e) =>
+                  change(i, {
+                    quantity: e.target.value,
+                    unit: selected?.unit_code ?? line.unit,
+                  })
+                }
+                required
+              />
+            </Field>
+            <Field label="Unit">
+              <input
+                className="costing-unit-readonly"
+                value={selected?.unit_code ?? "—"}
+                readOnly
+                aria-label={`Unit for ingredient ${i + 1}`}
+                title="Unit follows the selected material"
+              />
+            </Field>
+            <button
+              type="button"
+              className="costing-quiet"
+              onClick={() => onChange(lines.filter((_, n) => i !== n))}
+              aria-label={`Remove ingredient ${i + 1}`}
             >
-              <option value="">Choose ingredient or packaging…</option>
-              {available.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} · {m.kind.toLowerCase()}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Quantity">
-            <DecimalInput
-              inputMode="decimal"
-              value={line.quantity}
-              onChange={(e) => change(i, { quantity: e.target.value })}
-              required
-            />
-          </Field>
-          <Field label="Unit">
-            <UnitSelect
-              value={line.unit}
-              onChange={(unit) => change(i, { unit })}
-            />
-          </Field>
-          <button
-            type="button"
-            className="costing-quiet"
-            onClick={() => onChange(lines.filter((_, n) => i !== n))}
-            aria-label={`Remove ingredient ${i + 1}`}
-          >
-            Remove
-          </button>
-        </div>
-      ))}
+              Remove
+            </button>
+            {(issue || unitIssue) && (
+              <div className="costing-line-issue" role="alert">
+                {issue && (
+                  <p>
+                    {issue}{" "}
+                    {selected && (
+                      <a
+                        href={`/costing?view=${selected.kind === "RAW" ? "raw" : selected.kind === "PACKAGING" ? "packaging" : "prepared"}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {selected.kind === "PREPARED"
+                          ? "Open preparation & yields"
+                          : "Set price & usable quantity"}{" "}
+                        ↗
+                      </a>
+                    )}
+                  </p>
+                )}
+                {unitIssue && <p>{unitIssue}</p>}
+                {selected?.costError && <small>{selected.costError}</small>}
+              </div>
+            )}
+          </div>
+        );
+      })}
       <button
         type="button"
         className="costing-secondary"
@@ -264,9 +312,9 @@ export function LineEditor({
           onChange([
             ...lines,
             {
-              materialId: available[0]?.id ?? "",
-              quantity: "1",
-              unit: available[0]?.unit_code ?? "g",
+              materialId: "",
+              quantity: "",
+              unit: "g",
             },
           ])
         }

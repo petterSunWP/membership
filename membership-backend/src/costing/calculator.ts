@@ -17,6 +17,7 @@ export interface Line extends Quantity {
 export type Material =
   | {
       id: string;
+      name?: string;
       kind: "RAW" | "PACKAGING";
       unit: Unit;
       price: Price;
@@ -24,6 +25,7 @@ export type Material =
     }
   | {
       id: string;
+      name?: string;
       kind: "PREPARED";
       unit: Unit;
       yield: Quantity;
@@ -55,11 +57,20 @@ function positive(value: string): Decimal {
   if (result.compare(zero) === 0) throw new Error("QUANTITY_MUST_BE_POSITIVE");
   return result;
 }
-export function convert(quantity: string, from: Unit, to: Unit): Decimal {
+export function convert(
+  quantity: string,
+  from: Unit,
+  to: Unit,
+  context?: string,
+): Decimal {
   if (!Object.hasOwn(units, from) || !Object.hasOwn(units, to))
     throw new Error("UNKNOWN_UNIT");
   if (units[from].dimension !== units[to].dimension)
-    throw new Error("INCOMPATIBLE_UNITS");
+    throw new Error(
+      context
+        ? `${context}: entered ${from}, but the costing unit is ${to}. Mass, volume and count units are not interchangeable; use an actual measured conversion.`
+        : "INCOMPATIBLE_UNITS",
+    );
   return nonNegative(quantity)
     .mul(Decimal.of(units[from].factor))
     .div(Decimal.of(units[to].factor));
@@ -87,9 +98,12 @@ export function createCalculator(materials: readonly Material[]) {
   function lineCost(line: Line): Decimal {
     const material = byId.get(line.materialId);
     if (!material) throw new Error(`MATERIAL_NOT_FOUND:${line.materialId}`);
-    return convert(line.quantity, line.unit, material.unit).mul(
-      unitCost(material.id),
-    );
+    return convert(
+      line.quantity,
+      line.unit,
+      material.unit,
+      `Ingredient "${material.name ?? material.id}"`,
+    ).mul(unitCost(material.id));
   }
   function unitCost(id: string): Decimal {
     const cached = memo.get(id);
@@ -108,6 +122,7 @@ export function createCalculator(materials: readonly Material[]) {
           material.yield.quantity,
           material.yield.unit,
           material.unit,
+          `Measured yield for "${material.name ?? material.id}"`,
         );
         cost = material.inputs
           .reduce((sum, line) => sum.add(lineCost(line)), zero)
@@ -119,6 +134,7 @@ export function createCalculator(materials: readonly Material[]) {
             material.usable.quantity,
             material.usable.unit,
             material.unit,
+            `Price quantity for "${material.name ?? material.id}"`,
           ),
         );
       }

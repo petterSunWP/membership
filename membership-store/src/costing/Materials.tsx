@@ -1,7 +1,9 @@
+import { formulationIssue, prepareFormulationLines } from "./formulation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import {
   costingRequest,
+  compatibleUnits,
   decimalDisplay,
   errorMessage,
   costMoney,
@@ -479,7 +481,7 @@ export function PriceForm({
     </>
   );
 }
-function PreparationForm({
+export function PreparationForm({
   base,
   detail,
   materials,
@@ -512,15 +514,30 @@ function PreparationForm({
     detail.material.unit_code,
   );
   const [select, setSelect] = useState(false);
+  const outputMismatch = !compatibleUnits(detail.material.unit_code).includes(
+    u,
+  );
+  const unitWarning = outputMismatch
+    ? `Prepared ingredient "${detail.material.name}" is costed per ${detail.material.unit_code}, but the entered yield is ${u}. If the actual yield is weighed in grams, create a separate prepared ingredient with g as its costing unit. Do not relabel grams as millilitres.`
+    : "";
+  const linesIssue = formulationIssue(lines, materials);
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (unitWarning) {
+      setError(unitWarning);
+      return;
+    }
+    if (linesIssue) {
+      setError(linesIssue);
+      return;
+    }
     setBusy(true);
     try {
       await costingRequest(
         `${base}/materials/${detail.material.id}/preparation`,
         "POST",
         {
-          lines,
+          lines: prepareFormulationLines(lines, materials),
           yieldQuantity: quantity,
           yieldUnit: u,
           instructions,
@@ -579,6 +596,13 @@ function PreparationForm({
         tea leaves measured in grams can produce an actual measured yield in
         millilitres.
       </p>
+      <p className="costing-muted">
+        Prepared ingredient costing unit:{" "}
+        <strong>{detail.material.unit_code}</strong>. Input ingredient units and
+        output units may differ, but the measured output must match this
+        prepared ingredient's costing dimension.
+      </p>
+      <ErrorBox message={unitWarning} />
       {canEdit ? (
         <form onSubmit={submit}>
           <h3>Batch formulation</h3>
@@ -597,7 +621,11 @@ function PreparationForm({
               />
             </Field>
             <Field label="Output unit">
-              <UnitSelect value={u} onChange={setUnit} />
+              <UnitSelect
+                value={u}
+                onChange={setUnit}
+                compatibleWith={detail.material.unit_code}
+              />
             </Field>
             <Field label="Preparation instructions">
               <textarea
@@ -607,7 +635,7 @@ function PreparationForm({
               />
             </Field>
           </div>
-          <button disabled={busy}>
+          <button disabled={busy || outputMismatch || Boolean(linesIssue)}>
             {busy ? "Saving…" : "Save batch & standard yield"}
           </button>
         </form>

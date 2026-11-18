@@ -9,7 +9,7 @@ const server = await createServer({
   appType: "custom",
 });
 try {
-  const { Materials } = await server.ssrLoadModule(
+  const { Materials, PreparationForm } = await server.ssrLoadModule(
     "/src/costing/Materials.tsx",
   );
   const { LineEditor, CostCard, DecimalInput, TaxFields } =
@@ -192,6 +192,34 @@ try {
     assert.match(drink, /450 ml/);
     assert.doesNotMatch(drink, /450\.00000000/);
   });
+  await test("preparation form states its saved costing unit and ingredient choices show pricing units", () => {
+    const detail = {
+      material: { ...materials[1], name: "Mango mix", unit_code: "ml" },
+      head: null,
+      measurements: [],
+      revisions: [],
+      lines: [],
+      prices: [],
+      priceHead: null,
+    };
+    const html = render(PreparationForm, {
+      base: "/test",
+      detail,
+      materials,
+      canEdit: true,
+      saved: async () => {},
+    });
+    assert.match(html, /Prepared ingredient costing unit:/);
+    assert.match(html, /measured output must match/);
+    const editor = render(LineEditor, {
+      lines: [{ materialId: material.id, quantity: "450", unit: "g" }],
+      materials,
+      onChange() {},
+    });
+    assert.match(editor, /role="combobox"/);
+    assert.match(editor, /readOnly=""/);
+    assert.doesNotMatch(editor, /<option value="ml"/);
+  });
   await test("viewer material library shows incomplete costs without mutation controls", () => {
     const html = render(Materials, {
       base: "/test",
@@ -205,18 +233,53 @@ try {
     assert.doesNotMatch(html, />Edit<|>Archive<|\+ Add raw ingredient/);
     assert.doesNotMatch(html, /\$0\.00/);
   });
-  await test("ingredient editor retains the three kinds and excludes archived inputs", () => {
+  await test("ingredient editor searches all kinds, fixes units, and warns about missing prices", () => {
     const html = render(LineEditor, {
       materials,
       lines: [{ materialId: "1", quantity: "100", unit: "g" }],
-      onChange: () => {},
+      onChange() {},
     });
-    assert.match(html, /Jasmine leaves · raw/);
-    assert.match(html, /Prepared tea · prepared/);
-    assert.match(html, /Cup · packaging/);
-    assert.doesNotMatch(html, /Archived ingredient/);
-    assert.match(html, /value="ml"/);
-    assert.match(html, /value="g"/);
+    assert.match(html, /role="combobox"/);
+    assert.match(html, /Jasmine leaves/);
+    assert.match(html, /Search ingredient or packaging by name or code/);
+    assert.match(html, /readOnly=""[^>]*value="g"/);
+    assert.doesNotMatch(html, /<select/);
+    assert.match(html, /Set price &amp; usable quantity/);
+    assert.match(html, /target="_blank"/);
+    assert.match(html, /Raw Ingredients/);
+    const liquid = render(LineEditor, {
+      materials,
+      lines: [{ materialId: "2", quantity: "300", unit: "ml" }],
+      onChange() {},
+    });
+    assert.match(liquid, /readOnly=""[^>]*value="ml"/);
+    assert.doesNotMatch(liquid, /<select/);
+    const legacy = render(LineEditor, {
+      materials,
+      lines: [{ materialId: "1", quantity: "1", unit: "kg" }],
+      onChange() {},
+    });
+    assert.match(legacy, /value="1000"/);
+    assert.match(legacy, /readOnly=""[^>]*value="g"/);
+    const cup = render(LineEditor, {
+      materials: [
+        {
+          ...materials[2],
+          unitCost: null,
+          costError: "Missing entered price.",
+        },
+      ],
+      lines: [{ materialId: "3", quantity: "1", unit: "each" }],
+      onChange() {},
+    });
+    assert.match(cup, /Packaging &amp; Supplies/);
+    assert.match(cup, /role="alert"/);
+    const zero = render(LineEditor, {
+      materials: [{ ...material, unitCost: "0.00000000", costError: null }],
+      lines: [{ materialId: "1", quantity: "1", unit: "g" }],
+      onChange() {},
+    });
+    assert.doesNotMatch(zero, /Set price &amp; usable quantity/);
   });
   await test("profit display uses server results and defines zero-revenue margins clearly", () => {
     const cost = {

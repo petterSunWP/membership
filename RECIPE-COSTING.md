@@ -196,3 +196,14 @@ places; retail prices, revenue and gross-profit amounts retain their usual curre
 The backend retains exact rational calculations and existing eight-decimal database storage.
 Cost API serialization extends beyond eight decimal places only when a nonzero value would
 otherwise serialize as zero. This requires no schema change or historical-data rewrite.
+
+Formulation editor usability (local update): ingredient selection is a searchable combobox
+matching active material names/codes (including Chinese business names), with keyboard selection
+and explicit no-results feedback. It is shared by prepared batches and drink-size formulations.
+The unit field is read-only and follows the selected material. Historical compatible kg/L/dozen
+quantities are converted exactly for display/submission without changing their physical amount;
+incompatible or unrepresentable legacy quantities require explicit measured input, never guessing.
+Missing costs show actionable links to the matching price/preparation library in a new tab.
+Price zero is valid; unknown cost is not treated as free. Save is blocked until selections and
+costing prerequisites are resolved. Returning from a price-edit tab uses the existing window-focus
+refresh to reload costs while retaining formulation edits. No schema or production data change.

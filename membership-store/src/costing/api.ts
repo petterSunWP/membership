@@ -233,3 +233,10 @@ export const mapLine = (line: DbLine): Line => ({
   unit: line.unit_code,
 });
 export { money, costMoney, decimalDisplay, percentDisplay } from "./formatting";
+
+export const compatibleUnits = (base: Unit): Unit[] =>
+  ["g", "kg"].includes(base)
+    ? ["g", "kg"]
+    : ["ml", "l"].includes(base)
+      ? ["ml", "l"]
+      : ["each", "dozen"];
